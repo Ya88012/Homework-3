@@ -67,6 +67,11 @@ class EqualWeightPortfolio:
         TODO: Complete Task 1 Below
         """
 
+        self.portfolio_weights.fillna(1 / 11, inplace = True)
+        self.portfolio_weights['SPY'] = .0
+        # print('self.portfolio_weights:')
+        # print(self.portfolio_weights)
+
         """
         TODO: Complete Task 1 Above
         """
@@ -117,6 +122,25 @@ class RiskParityPortfolio:
         """
         TODO: Complete Task 2 Below
         """
+
+        print('df:')
+        print(df)
+
+        print('df_returns:')
+        print(df_returns)
+
+        self.portfolio_weights['SPY'] = .0
+
+        def rolling_std_up_to_current(df):
+            result = pd.DataFrame()
+            for column in df.columns:
+                std_values = [0] + [df[column].iloc[ : i + 1].std() for i in range(1, len(df))]
+                result[column] = std_values
+            return result
+
+        result = rolling_std_up_to_current(df_returns)
+        print('result')
+        print(result)
 
         """
         TODO: Complete Task 2 Above
@@ -401,6 +425,8 @@ class AssignmentJudge:
 
     def check_answer_rp(self, rp_dataframe):
         answer_dataframe = pd.read_pickle(self.rp_path)
+        print('answer_dataframe:')
+        print(answer_dataframe)
         if self.compare_dataframe(answer_dataframe, rp_dataframe):
             print("Problem 2 Complete - Get 10 Points")
             return 10
