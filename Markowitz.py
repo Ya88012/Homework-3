@@ -123,24 +123,14 @@ class RiskParityPortfolio:
         TODO: Complete Task 2 Below
         """
 
-        print('df:')
-        print(df)
-
-        print('df_returns:')
-        print(df_returns)
-
-        self.portfolio_weights['SPY'] = .0
-
-        def rolling_std_up_to_current(df):
-            result = pd.DataFrame()
-            for column in df.columns:
-                std_values = [0] + [df[column].iloc[ : i + 1].std() for i in range(1, len(df))]
-                result[column] = std_values
-            return result
-
-        result = rolling_std_up_to_current(df_returns)
-        print('result')
-        print(result)
+        for i in range((self.lookback + 1), len(df_returns)):
+            temp_df = df_returns.iloc[i - self.lookback : i, 1 :]
+            numerator = 1 / temp_df.std()
+            denominator = (1 / temp_df.std()).sum()
+            w = (numerator / denominator)
+            self.portfolio_weights.iloc[i, 1 :] = w
+        # print('self.portfolio_weights:')
+        # print(self.portfolio_weights)
 
         """
         TODO: Complete Task 2 Above
@@ -216,8 +206,13 @@ class MeanVariancePortfolio:
 
                 # Sample Code: Initialize Decision w and the Objective
                 # NOTE: You can modify the following code
-                w = model.addMVar(n, name="w", ub=1)
-                model.setObjective(w.sum(), gp.GRB.MAXIMIZE)
+                # w = model.addMVar(n, name="w", ub=1)
+                w = model.addMVar(shape = n, lb = 0, ub = 1, name = 'w')
+                # model.setObjective(w.sum(), gp.GRB.MAXIMIZE)
+                objective = w @ mu - 0.5 * gamma * w @ Sigma @ w
+                model.setObjective(objective, gp.GRB.MAXIMIZE)
+
+                model.addConstr(w.sum() == 1, name = 'budget')
 
                 """
                 TODO: Complete Task 3 Below
@@ -425,8 +420,6 @@ class AssignmentJudge:
 
     def check_answer_rp(self, rp_dataframe):
         answer_dataframe = pd.read_pickle(self.rp_path)
-        print('answer_dataframe:')
-        print(answer_dataframe)
         if self.compare_dataframe(answer_dataframe, rp_dataframe):
             print("Problem 2 Complete - Get 10 Points")
             return 10
@@ -439,7 +432,7 @@ class AssignmentJudge:
         mv_list_1 = pd.read_pickle(self.mv_list_1_path)
         mv_list_2 = pd.read_pickle(self.mv_list_2_path)
         mv_list_3 = pd.read_pickle(self.mv_list_3_path)
-        answer_list = [mv_list_0, mv_list_1, mv_list_2, mv_list_3]
+        answer_list = [mv_list_0, mv_list_1, mv_list_2, mv_list_3] 
         if self.compare_dataframe_list(answer_list, mv_list):
             print("Problem 3 Complete - Get 15 points")
             return 15
